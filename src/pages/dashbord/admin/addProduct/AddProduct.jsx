@@ -8,29 +8,23 @@ import { useNavigate } from 'react-router-dom';
 
 const categories = [
     { label: 'أختر منتج', value: '' },
-    { label: 'حناء بودر', value: 'حناء بودر' },
-    { label: 'سدر بودر', value: 'سدر بودر' },
-    { label: 'أعشاب تكثيف وتطويل الشعر', value: 'أعشاب تكثيف وتطويل الشعر' },
-    { label: 'مشاط', value: 'مشاط' },
-    { label: 'خزامى', value: 'خزامى' },
-    { label: 'كركديه', value: 'كركديه' },
-    { label: 'إكليل الجبل', value: 'إكليل الجبل' }
+    { label: 'عطور', value: 'عطور' },
+    { label: 'معطرات الجسم', value: 'معطرات الجسم' },
+    { label: ' معطر جو', value: ' معطر جو' },
+    { label: 'عصي عتم', value: 'عصي عتم' }
 ];
-
+ 
 const AddProduct = () => {
     const { user } = useSelector((state) => state.auth);
 
     const [product, setProduct] = useState({
         name: '',
         category: '',
-        regularPrice: '',
-        price: {
-            "500 جرام": '',
-            "1 كيلو": ''
-        },
+        // color: '',
+        price: '',
         description: ''
     });
-    const [image, setImage] = useState([]);
+    const [image, setImage] = useState([]); // مصفوفة لحفظ روابط الصور
 
     const [AddProduct, { isLoading, error }] = useAddProductMutation();
     const navigate = useNavigate();
@@ -43,147 +37,82 @@ const AddProduct = () => {
         });
     };
 
-    const handlePriceChange = (size, value) => {
-        setProduct({
-            ...product,
-            price: {
-                ...product.price,
-                [size]: value
-            }
-        });
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // التحقق من الحقول المطلوبة
-        if (!product.name || !product.category || !product.description || image.length === 0) {
-            alert('الرجاء تعبئة جميع الحقول المطلوبة');
+        if (!product.name || !product.category || !product.price || !product.description ||  image.length === 0) {
+            alert('أملأ كل الحقول');
             return;
         }
 
-        // التحقق من الأسعار بناءً على الفئة
-        if (product.category === 'حناء بودر') {
-            if (!product.price['500 جرام'] || !product.price['1 كيلو']) {
-                alert('الرجاء إدخال سعرين للحناء بودر (500 جرام و1 كيلو)');
-                return;
-            }
-        } else {
-            if (!product.regularPrice) {
-                alert('الرجاء إدخال سعر المنتج');
-                return;
-            }
-        }
-
         try {
-            const productData = {
-                name: product.name,
-                category: product.category,
-                description: product.description,
-                image,
-                author: user?._id
-            };
-
-            if (product.category === 'حناء بودر') {
-                productData.price = {
-                    "500 جرام": parseFloat(product.price['500 جرام']),
-                    "1 كيلو": parseFloat(product.price['1 كيلو'])
-                };
-            } else {
-                productData.regularPrice = parseFloat(product.regularPrice);
-            }
-
-            await AddProduct(productData).unwrap();
-            alert('تم إضافة المنتج بنجاح');
+            await AddProduct({ ...product, image, author: user?._id }).unwrap();
+            alert('تمت أضافة المنتج بنجاح');
             setProduct({
                 name: '',
                 category: '',
-                regularPrice: '',
-                price: {
-                    "500 جرام": '',
-                    "1 كيلو": ''
-                },
+                // color: '',
+                price: '',
                 description: ''
             });
             setImage([]);
             navigate("/shop");
         } catch (error) {
-            console.log("فشل في إضافة المنتج", error);
+            console.log("Failed to submit product", error);
         }
     };
 
     return (
         <div className="container mx-auto mt-8">
-            <h2 className="text-2xl font-bold mb-6">إضافة منتج جديد</h2>
+            <h2 className="text-2xl font-bold mb-6">أضافة منتج جديد</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <TextInput
-                    label="اسم المنتج"
+                    label="أسم المنتج"
                     name="name"
-                    placeholder="مثال: حناء بودر عالية الجودة"
+                    placeholder="أكتب أسم المنتج"
                     value={product.name}
                     onChange={handleChange}
                 />
                 <SelectInput
-                    label="الصنف"
+                    label="صنف المنتج"
                     name="category"
                     value={product.category}
                     onChange={handleChange}
                     options={categories}
                 />
-                
-                {product.category === 'حناء بودر' ? (
-                    <>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">سعر 500 جرام</label>
-                            <input
-                                type="number"
-                                value={product.price['500 جرام']}
-                                onChange={(e) => handlePriceChange('500 جرام', e.target.value)}
-                                className="add-product-InputCSS"
-                                placeholder="السعر لـ 500 جرام"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">سعر 1 كيلو</label>
-                            <input
-                                type="number"
-                                value={product.price['1 كيلو']}
-                                onChange={(e) => handlePriceChange('1 كيلو', e.target.value)}
-                                className="add-product-InputCSS"
-                                placeholder="السعر لـ 1 كيلو"
-                            />
-                        </div>
-                    </>
-                ) : (
-                    <TextInput
-                        label="السعر"
-                        name="regularPrice"
-                        type="number"
-                        placeholder="50"
-                        value={product.regularPrice}
-                        onChange={handleChange}
-                    />
-                )}
-
+                {/* <SelectInput
+                    label="Color"
+                    name="color"
+                    value={product.color}
+                    onChange={handleChange}
+                    options={colors}
+                /> */}
+                <TextInput
+                    label="السعر"
+                    name="price"
+                    type="number"
+                    placeholder="50"
+                    value={product.price}
+                    onChange={handleChange}
+                />
                 <UploadImage
                     name="image"
                     id="image"
                     setImage={setImage}
                 />
                 <div>
-                    <label htmlFor="description" className='block text-sm font-medium text-gray-700'>الوصف</label>
+                    <label htmlFor="description" className='block text-sm font-medium text-gray-700'>وصف المنتج</label>
                     <textarea
                         name="description"
                         id="description"
                         className='add-product-InputCSS'
                         value={product.description}
-                        placeholder='اكتب وصفاً للمنتج'
+                        placeholder='Write a product description'
                         onChange={handleChange}
                     ></textarea>
                 </div>
                 <div>
                     <button type='submit' className='add-product-btn' disabled={isLoading}>
-                        {isLoading ? "جاري الإضافة..." : "إضافة المنتج"}
+                        {isLoading ? "جاري الإضافة..." : "أضف منتج"}
                     </button>
                 </div>
             </form>

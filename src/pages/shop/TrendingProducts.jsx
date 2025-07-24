@@ -5,6 +5,7 @@ import { useFetchAllProductsQuery } from '../../redux/features/products/products
 
 const TrendingProducts = () => {
     const [visibleProducts, setVisibleProducts] = useState(4);
+    const [hoveredProducts, setHoveredProducts] = useState({});
 
     const { data: { products = [] } = {}, error, isLoading } = useFetchAllProductsQuery({
         category: '',
@@ -16,16 +17,27 @@ const TrendingProducts = () => {
         setVisibleProducts((prevCount) => prevCount + 4);
     };
 
-    // دالة لاستخراج السعر الأول للمنتج
+    const handleMouseEnter = (productId) => {
+        setHoveredProducts(prev => ({
+            ...prev,
+            [productId]: true
+        }));
+    };
+
+    const handleMouseLeave = (productId) => {
+        setHoveredProducts(prev => ({
+            ...prev,
+            [productId]: false
+        }));
+    };
+
     const getFirstPrice = (product) => {
         if (!product) return 0;
         
-        // إذا كان المنتج من نوع حناء بودر
         if (product.category === 'حناء بودر' && product.price && typeof product.price === 'object') {
             return product.price['500 جرام'] || product.price['1 كيلو'] || 0;
         }
         
-        // للمنتجات الأخرى
         return product.regularPrice || product.price || 0;
     };
 
@@ -42,9 +54,10 @@ const TrendingProducts = () => {
             <h2 className="section__header text-3xl font-bold text-[#e2e5e5] mb-4">
                 منتجات جديدة
             </h2>
-            <p className="section__subheader text-lg text-gray-600 mb-12" dir='rtl'>
-                اكتشف سر الجمال الطبيعي مع تشكيلتنا المختارة من الأعشاب والمنتجات التقليدية الأصيلة!
-            </p>
+<p className="section__subheader text-lg text-gray-600 mb-12" dir='rtl'>
+    عِش تجربة فاخرة من الروائح الشرقية الأصيلة مع تشكيلتنا المختارة من العطور التقليدية والأنثور الطبيعي.
+</p>
+
 
             <div className="mt-12" dir='rtl'>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -52,9 +65,17 @@ const TrendingProducts = () => {
                         <div key={product._id} className="product__card bg-white rounded-lg shadow-md overflow-hidden">
                             <div className="relative">
                                 <Link to={`/shop/${product._id}`}>
-                                    <div className="aspect-square overflow-hidden">
+                                    <div 
+                                        className="aspect-square overflow-hidden"
+                                        onMouseEnter={() => handleMouseEnter(product._id)}
+                                        onMouseLeave={() => handleMouseLeave(product._id)}
+                                    >
                                         <img
-                                            src={product.image?.[0] || "https://via.placeholder.com/300"}
+                                            src={
+                                                hoveredProducts[product._id] && product.image?.[1] 
+                                                    ? product.image[1] 
+                                                    : product.image?.[0] || "https://via.placeholder.com/300"
+                                            }
                                             alt={product.name || "صورة المنتج"}
                                             className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
                                             onError={(e) => {
@@ -70,14 +91,12 @@ const TrendingProducts = () => {
                                 <h4 className="text-lg font-semibold">{product.name || "اسم المنتج"}</h4>
                                 <p className="text-gray-500 text-sm mb-2">{product.category || "فئة غير محددة"}</p>
                                 
-                                <div className="text-[#3D4B2E] mt-2 font-medium">
+                                <div className="text-[#d3ae27] mt-2 font-medium">
                                     {getFirstPrice(product)} ر.ع
                                     {product.oldPrice && (
                                         <s className="text-gray-500 text-sm ml-2">{product.oldPrice} ر.ع</s>
                                     )}
                                 </div>
-                                
-                               
                             </div>
                         </div>
                     ))}
