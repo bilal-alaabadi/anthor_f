@@ -18,17 +18,14 @@ const Footer = () => {
           </div>
           
           {/* قسم LEGAL */}
-          {/* <div>
-            <h4 className="text-lg font-bold text-gray-800 mb-4">الشروط والأحكام</h4>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition">سياسة الإرجاع</a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-600 hover:text-primary transition">شروط الخصوصية</a>
-              </li>
-            </ul>
-          </div> */}
+          <div className='text-white'>
+      <h4 className="text-lg font-bold mb-4 text-white ">الشروط والأحكام</h4>
+      <ul className="space-y-2 text-white">
+        <li>
+          <a href={"/return-policy"} className="transition-colors  hover:text-[#9B2D1F] duration-300 text-white">سياسة الاسترجاع</a>
+        </li>
+      </ul>
+    </div>
           
           {/* قسم SOCIAL */}
           <div>
