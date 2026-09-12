@@ -53,27 +53,47 @@ const TrendingProducts = ({ onProductsLoaded }) => {
     return (
       <section className="section__container product__container">
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/90">
-          <img src={log} alt="شعار الأنثور" className="h-24 w-auto animate-pulse" draggable="false" />
+          <img
+            src={log}
+            alt="شعار الأنثور"
+            className="h-24 w-auto animate-pulse"
+            draggable="false"
+          />
         </div>
       </section>
     );
   }
 
   if (error) {
-    return <div className="text-center py-8 text-red-500">حدث خطأ أثناء جلب البيانات.</div>;
+    return (
+      <div className="text-center py-8 text-red-500">
+        حدث خطأ أثناء جلب البيانات.
+      </div>
+    );
   }
 
   return (
     <section className="section__container product__container">
       <div className="relative text-center" dir="rtl">
         {/* العنوانين */}
-        <h2 className="text-[32px] font-normal text-[#c8c5b9] mb-1">أستكشف مجموعاتنا المميزة</h2>
-        <p className="text-[32px] font-bold text-[#3c3c3c] mb-4">عبر أقسامنا الفريدة</p>
+        <h2 className="text-[32px] font-normal text-[#c8c5b9] mb-1">
+          أستكشف مجموعاتنا المميزة
+        </h2>
+
+        <p className="text-[32px] font-bold text-[#3c3c3c] mb-4">
+          عبر أقسامنا الفريدة
+        </p>
 
         {/* الشعار مع الخطين */}
         <div className="flex items-center justify-center gap-3 relative z-10">
           <span className="flex-1 max-w-[100px] h-px bg-[#c8c5b9]"></span>
-          <img src={log} alt="شعار الأنثور" className="h-20 w-auto object-contain" />
+
+          <img
+            src={log}
+            alt="شعار الأنثور"
+            className="h-20 w-auto object-contain"
+          />
+
           <span className="flex-1 max-w-[100px] h-px bg-[#c8c5b9]"></span>
         </div>
 
@@ -91,8 +111,15 @@ const TrendingProducts = ({ onProductsLoaded }) => {
           {products.slice(0, visibleProducts).map((product) => {
             const price = getFirstPrice(product);
             const oldPrice = getOldPrice(product);
+
             const discountPercentage =
-              oldPrice && oldPrice !== price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+              oldPrice && oldPrice !== price
+                ? Math.round(((oldPrice - price) / oldPrice) * 100)
+                : 0;
+
+            // المنتج منتهي إذا كانت الكمية 0 أو تم تحديده كغير متوفر
+            const isOutOfStock =
+              Number(product.stock) <= 0 || product.inStock === false;
 
             return (
               <div
@@ -106,31 +133,75 @@ const TrendingProducts = ({ onProductsLoaded }) => {
                 )}
 
                 <div className="relative flex-grow">
-                  <Link to={`/shop/${product._id}`} className="block h-full">
-                    <div className="h-80 w-full overflow-hidden">
-                      <img
-                        src={product.image?.[0] || 'https://via.placeholder.com/300'}
-                        alt={product.name || 'صورة المنتج'}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/300';
-                          e.currentTarget.alt = 'صورة المنتج غير متوفرة';
-                        }}
-                      />
+                  {!isOutOfStock ? (
+                    <Link
+                      to={`/shop/${product._id}`}
+                      className="block h-full"
+                    >
+                      <div className="h-80 w-full overflow-hidden">
+                        <img
+                          src={
+                            product.image?.[0] ||
+                            'https://via.placeholder.com/300'
+                          }
+                          alt={product.name || 'صورة المنتج'}
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              'https://via.placeholder.com/300';
+                            e.currentTarget.alt =
+                              'صورة المنتج غير متوفرة';
+                          }}
+                        />
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="block h-full cursor-not-allowed">
+                      <div className="h-80 w-full overflow-hidden">
+                        <img
+                          src={
+                            product.image?.[0] ||
+                            'https://via.placeholder.com/300'
+                          }
+                          alt={product.name || 'صورة المنتج'}
+                          className="w-full h-full object-cover opacity-60"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              'https://via.placeholder.com/300';
+                            e.currentTarget.alt =
+                              'صورة المنتج غير متوفرة';
+                          }}
+                        />
+                      </div>
                     </div>
-                  </Link>
+                  )}
+
+                  {isOutOfStock && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                      <span className="bg-red-600 text-white px-4 py-2 rounded-md font-bold">
+                        نفذت الكمية
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4">
-                  <h4 className="text-lg font-semibold mb-1 line-clamp-2" title={product.name}>
+                  <h4
+                    className="text-lg font-semibold mb-1 line-clamp-2"
+                    title={product.name}
+                  >
                     {product.name || 'اسم المنتج'}
                   </h4>
-                  <p className="text-gray-500 text-sm mb-3">{product.category || 'فئة غير محددة'}</p>
+
+                  <p className="text-gray-500 text-sm mb-3">
+                    {product.category || 'فئة غير محددة'}
+                  </p>
 
                   <div className="space-y-1">
                     <div className="font-medium text-lg">
                       {price.toFixed(2)} {currency}
                     </div>
+
                     {oldPrice && oldPrice !== price && (
                       <s className="text-red-500 text-sm">
                         {oldPrice.toFixed(2)} {currency}
