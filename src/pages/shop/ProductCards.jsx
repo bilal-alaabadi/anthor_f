@@ -24,6 +24,13 @@ const ProductCards = ({ products }) => {
     };
 
     const handleAddToCart = (productId, product) => {
+        const isOutOfStock =
+            Number(product.stock) <= 0 || product.inStock === false;
+
+        if (isOutOfStock) {
+            return;
+        }
+
         const originalPrice = product.regularPrice || product.price || 0;
         
         dispatch(addToCart({
@@ -47,8 +54,11 @@ const ProductCards = ({ products }) => {
                 <div className="font-medium text-lg">
                     {price.toFixed(2)} {currency}
                 </div>
+
                 {showDiscount && (
-                    <s className="text-red-500 text-sm">{oldPrice.toFixed(2)} {currency}</s>
+                    <s className="text-red-500 text-sm">
+                        {oldPrice.toFixed(2)} {currency}
+                    </s>
                 )}
             </div>
         );
@@ -60,7 +70,13 @@ const ProductCards = ({ products }) => {
                 const price = getProductPrice(product);
                 const oldPrice = product.oldPrice ? product.oldPrice * exchangeRate : null;
                 const showDiscount = oldPrice && oldPrice !== price;
-                const discountPercentage = showDiscount ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+
+                const discountPercentage = showDiscount
+                    ? Math.round(((oldPrice - price) / oldPrice) * 100)
+                    : 0;
+
+                const isOutOfStock =
+                    Number(product.stock) <= 0 || product.inStock === false;
 
                 return (
                     <div 
@@ -74,28 +90,72 @@ const ProductCards = ({ products }) => {
                         )}
 
                         <div className='relative flex-grow'>
-                            <Link to={`/shop/${product._id}`} className="block h-full">
-                                <div className="h-64 w-full overflow-hidden">
-                                    <img
-                                        src={product.image?.[0] || "https://via.placeholder.com/300"}
-                                        alt={product.name || "صورة المنتج"}
-                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                        onError={(e) => {
-                                            e.target.src = "https://via.placeholder.com/300";
-                                            e.target.alt = "صورة المنتج غير متوفرة";
-                                        }}
-                                    />
+
+                            {!isOutOfStock ? (
+                                <Link
+                                    to={`/shop/${product._id}`}
+                                    className="block h-full"
+                                >
+                                    <div className="h-64 w-full overflow-hidden">
+                                        <img
+                                            src={
+                                                product.image?.[0] ||
+                                                "https://via.placeholder.com/300"
+                                            }
+                                            alt={product.name || "صورة المنتج"}
+                                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                            onError={(e) => {
+                                                e.target.src = "https://via.placeholder.com/300";
+                                                e.target.alt = "صورة المنتج غير متوفرة";
+                                            }}
+                                        />
+                                    </div>
+                                </Link>
+                            ) : (
+                                <div className="block h-full cursor-not-allowed">
+                                    <div className="h-64 w-full overflow-hidden">
+                                        <img
+                                            src={
+                                                product.image?.[0] ||
+                                                "https://via.placeholder.com/300"
+                                            }
+                                            alt={product.name || "صورة المنتج"}
+                                            className="w-full h-full object-cover opacity-60"
+                                            onError={(e) => {
+                                                e.target.src = "https://via.placeholder.com/300";
+                                                e.target.alt = "صورة المنتج غير متوفرة";
+                                            }}
+                                        />
+                                    </div>
                                 </div>
-                            </Link>
+                            )}
+
+                            {isOutOfStock && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                                    <span className="bg-red-600 text-white px-4 py-2 rounded-md font-bold">
+                                        نفذت الكمية
+                                    </span>
+                                </div>
+                            )}
 
                             <div className='absolute top-3 right-3'>
-                                <button
-                                    onClick={(e) => {
+                                <button 
+                                    onClick={(e) => { 
                                         e.preventDefault();
-                                        handleAddToCart(product._id, product);
+
+                                        if (!isOutOfStock) {
+                                            handleAddToCart(product._id, product);
+                                        }
                                     }}
+
+                                    disabled={isOutOfStock}
+
                                     className={`p-2 text-white rounded-full shadow-md transition-all duration-300 ${
-                                        addedItems[product._id] ? 'bg-green-500' : 'bg-[#3D4B2E] hover:bg-[#c19e22]'
+                                        isOutOfStock
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : addedItems[product._id]
+                                            ? 'bg-green-500'
+                                            : 'bg-[#3D4B2E] hover:bg-[#c19e22]'
                                     }`}
                                 >
                                     {addedItems[product._id] ? (
@@ -108,15 +168,20 @@ const ProductCards = ({ products }) => {
                         </div>
 
                         <div className='p-4'>
-                            <h4 className="text-lg font-semibold mb-1">{product.name || "اسم المنتج"}</h4>
-                            <p className="text-gray-500 text-sm mb-3">{product.category || "فئة غير محددة"}</p>
+                            <h4 className="text-lg font-semibold mb-1">
+                                {product.name || "اسم المنتج"}
+                            </h4>
+
+                            <p className="text-gray-500 text-sm mb-3">
+                                {product.category || "فئة غير محددة"}
+                            </p>
                             
                             {renderPrice(product)}
                         </div>
                     </div>
                 );
             })}
-        </div> 
+        </div>  
     );
 };
 
